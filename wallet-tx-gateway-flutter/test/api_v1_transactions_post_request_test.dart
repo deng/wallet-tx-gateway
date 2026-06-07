@@ -40,7 +40,7 @@ void main() {
       // TODO
     });
 
-    // Filter by transaction type
+    // Filter by transaction type (null/omit for all)
     // String type
     test('to test the property `type`', () async {
       // TODO

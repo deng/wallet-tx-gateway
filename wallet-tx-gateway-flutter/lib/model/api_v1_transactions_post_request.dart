@@ -50,7 +50,7 @@ class ApiV1TransactionsPostRequest {
   ///
   int? limit;
 
-  /// Filter by transaction type
+  /// Filter by transaction type (null/omit for all)
   ApiV1TransactionsPostRequestTypeEnum? type;
 
   /// Filter by token contract address
@@ -188,7 +188,7 @@ class ApiV1TransactionsPostRequest {
   };
 }
 
-/// Filter by transaction type
+/// Filter by transaction type (null/omit for all)
 class ApiV1TransactionsPostRequestTypeEnum {
   /// Instantiate a new enum with the provided [value].
   const ApiV1TransactionsPostRequestTypeEnum._(this.value);
