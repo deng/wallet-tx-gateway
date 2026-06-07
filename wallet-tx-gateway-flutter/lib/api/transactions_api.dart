@@ -18,7 +18,7 @@ class TransactionsApi {
 
   /// Fetch wallet transactions
   ///
-  /// Fetch transaction history for a wallet address on a specific chain.
+  /// Fetch transaction history for a wallet address on a specific chain. Returns merged coin and token transfers sorted by timestamp descending.
   ///
   /// Note: This method returns the HTTP [Response].
   ///
@@ -52,7 +52,7 @@ class TransactionsApi {
 
   /// Fetch wallet transactions
   ///
-  /// Fetch transaction history for a wallet address on a specific chain.
+  /// Fetch transaction history for a wallet address on a specific chain. Returns merged coin and token transfers sorted by timestamp descending.
   ///
   /// Parameters:
   ///
@@ -67,7 +67,7 @@ class TransactionsApi {
     // FormatException when trying to decode an empty string.
     if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
       return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'ApiV1TransactionsPost200Response',) as ApiV1TransactionsPost200Response;
-
+    
     }
     return null;
   }

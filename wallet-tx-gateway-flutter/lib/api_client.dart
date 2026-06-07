@@ -182,28 +182,26 @@ class ApiClient {
           return valueString == 'true' || valueString == '1';
         case 'DateTime':
           return value is DateTime ? value : DateTime.tryParse(value);
+        case 'ApiV1ChainsGet200Response':
+          return ApiV1ChainsGet200Response.fromJson(value);
         case 'ApiV1TransactionsPost200Response':
           return ApiV1TransactionsPost200Response.fromJson(value);
         case 'ApiV1TransactionsPost400Response':
           return ApiV1TransactionsPost400Response.fromJson(value);
-        case 'ApiV1TransactionsPost502Response':
-          return ApiV1TransactionsPost502Response.fromJson(value);
         case 'ApiV1TransactionsPost504Response':
           return ApiV1TransactionsPost504Response.fromJson(value);
         case 'ApiV1TransactionsPostRequest':
           return ApiV1TransactionsPostRequest.fromJson(value);
-        case 'ApiV1ChainsGet200Response':
-          return ApiV1ChainsGet200Response.fromJson(value);
-        case 'TransactionItem':
-          return TransactionItem.fromJson(value);
-        case 'TxData':
-          return TxData.fromJson(value);
-        case 'TokenTransfer':
-          return TokenTransfer.fromJson(value);
         case 'Chain':
           return Chain.fromJson(value);
         case 'HealthGet200Response':
           return HealthGet200Response.fromJson(value);
+        case 'TokenTransfer':
+          return TokenTransfer.fromJson(value);
+        case 'TransactionItem':
+          return TransactionItem.fromJson(value);
+        case 'TxData':
+          return TxData.fromJson(value);
         default:
           dynamic match;
           if (value is List && (match = _regList.firstMatch(targetType)?.group(1)) != null) {

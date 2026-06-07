@@ -149,3 +149,4 @@ class HealthGet200Response {
   static const requiredKeys = <String>{
   };
 }
+

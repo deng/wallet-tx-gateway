@@ -132,3 +132,4 @@ class ApiV1TransactionsPost504Response {
   static const requiredKeys = <String>{
   };
 }
+

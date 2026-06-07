@@ -28,15 +28,38 @@ class ApiV1TransactionsPostRequest {
   String chain;
 
   /// Number of records to skip (default: 0)
+  ///
+  /// Minimum value: 0
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
   int? skip;
 
   /// Max records to return (default: 20, max: 50)
+  ///
+  /// Minimum value: 1
+  /// Maximum value: 50
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
   int? limit;
 
   /// Filter by transaction type
   ApiV1TransactionsPostRequestTypeEnum? type;
 
   /// Filter by token contract address
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
   String? contractAddress;
 
   @override
@@ -165,6 +188,7 @@ class ApiV1TransactionsPostRequest {
   };
 }
 
+/// Filter by transaction type
 class ApiV1TransactionsPostRequestTypeEnum {
   /// Instantiate a new enum with the provided [value].
   const ApiV1TransactionsPostRequestTypeEnum._(this.value);
@@ -236,3 +260,5 @@ class ApiV1TransactionsPostRequestTypeEnumTypeTransformer {
   /// Singleton [ApiV1TransactionsPostRequestTypeEnumTypeTransformer] instance.
   static ApiV1TransactionsPostRequestTypeEnumTypeTransformer? _instance;
 }
+
+

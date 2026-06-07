@@ -55,7 +55,7 @@ class SystemApi {
     // FormatException when trying to decode an empty string.
     if (response.body.isNotEmpty && response.statusCode != HttpStatus.noContent) {
       return await apiClient.deserializeAsync(await _decodeBodyBytes(response), 'HealthGet200Response',) as HealthGet200Response;
-
+    
     }
     return null;
   }

@@ -122,3 +122,4 @@ class ApiV1ChainsGet200Response {
   static const requiredKeys = <String>{
   };
 }
+

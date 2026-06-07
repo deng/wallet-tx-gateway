@@ -29,19 +29,74 @@ class TransactionItem {
     this.tokenTransfers = const [],
   });
 
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
   String? txHash;
-  String? type;
+
+  TransactionItemTypeEnum? type;
+
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
   String? from;
+
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
   String? to;
+
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
   String? value;
+
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
   String? symbol;
+
   int? decimals;
+
   String? contractAddress;
+
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
   int? timestamp;
-  String? status;
+
+  TransactionItemStatusEnum? status;
+
+  ///
+  /// Please note: This property should have been non-nullable! Since the specification file
+  /// does not include a default value (using the "default:" property), however, the generated
+  /// source code must fall back to having a nullable type.
+  /// Consider adding a "default:" property in the specification file to hide this note.
+  ///
   String? gasFee;
+
   String? methodId;
+
   int? blockNumber;
+
   List<TokenTransfer> tokenTransfers;
 
   @override
@@ -160,9 +215,20 @@ class TransactionItem {
     if (value is Map) {
       final json = value.cast<String, dynamic>();
 
+      // Ensure that the map contains the required keys.
+      // Note 1: the values aren't checked for validity beyond being non-null.
+      // Note 2: this code is stripped in release mode!
+      assert(() {
+        requiredKeys.forEach((key) {
+          assert(json.containsKey(key), 'Required key "TransactionItem[$key]" is missing from JSON.');
+          assert(json[key] != null, 'Required key "TransactionItem[$key]" has a null value in JSON.');
+        });
+        return true;
+      }());
+
       return TransactionItem(
         txHash: mapValueOfType<String>(json, r'txHash'),
-        type: mapValueOfType<String>(json, r'type'),
+        type: TransactionItemTypeEnum.fromJson(json[r'type']),
         from: mapValueOfType<String>(json, r'from'),
         to: mapValueOfType<String>(json, r'to'),
         value: mapValueOfType<String>(json, r'value'),
@@ -170,7 +236,7 @@ class TransactionItem {
         decimals: mapValueOfType<int>(json, r'decimals'),
         contractAddress: mapValueOfType<String>(json, r'contractAddress'),
         timestamp: mapValueOfType<int>(json, r'timestamp'),
-        status: mapValueOfType<String>(json, r'status'),
+        status: TransactionItemStatusEnum.fromJson(json[r'status']),
         gasFee: mapValueOfType<String>(json, r'gasFee'),
         methodId: mapValueOfType<String>(json, r'methodId'),
         blockNumber: mapValueOfType<int>(json, r'blockNumber'),
@@ -224,3 +290,155 @@ class TransactionItem {
   static const requiredKeys = <String>{
   };
 }
+
+
+class TransactionItemTypeEnum {
+  /// Instantiate a new enum with the provided [value].
+  const TransactionItemTypeEnum._(this.value);
+
+  /// The underlying value of this enum member.
+  final String value;
+
+  @override
+  String toString() => value;
+
+  String toJson() => value;
+
+  static const coin = TransactionItemTypeEnum._(r'coin');
+  static const token = TransactionItemTypeEnum._(r'token');
+
+  /// List of all possible values in this [enum][TransactionItemTypeEnum].
+  static const values = <TransactionItemTypeEnum>[
+    coin,
+    token,
+  ];
+
+  static TransactionItemTypeEnum? fromJson(dynamic value) => TransactionItemTypeEnumTypeTransformer().decode(value);
+
+  static List<TransactionItemTypeEnum> listFromJson(dynamic json, {bool growable = false,}) {
+    final result = <TransactionItemTypeEnum>[];
+    if (json is List && json.isNotEmpty) {
+      for (final row in json) {
+        final value = TransactionItemTypeEnum.fromJson(row);
+        if (value != null) {
+          result.add(value);
+        }
+      }
+    }
+    return result.toList(growable: growable);
+  }
+}
+
+/// Transformation class that can [encode] an instance of [TransactionItemTypeEnum] to String,
+/// and [decode] dynamic data back to [TransactionItemTypeEnum].
+class TransactionItemTypeEnumTypeTransformer {
+  factory TransactionItemTypeEnumTypeTransformer() => _instance ??= const TransactionItemTypeEnumTypeTransformer._();
+
+  const TransactionItemTypeEnumTypeTransformer._();
+
+  String encode(TransactionItemTypeEnum data) => data.value;
+
+  /// Decodes a [dynamic value][data] to a TransactionItemTypeEnum.
+  ///
+  /// If [allowNull] is true and the [dynamic value][data] cannot be decoded successfully,
+  /// then null is returned. However, if [allowNull] is false and the [dynamic value][data]
+  /// cannot be decoded successfully, then an [UnimplementedError] is thrown.
+  ///
+  /// The [allowNull] is very handy when an API changes and a new enum value is added or removed,
+  /// and users are still using an old app with the old code.
+  TransactionItemTypeEnum? decode(dynamic data, {bool allowNull = true}) {
+    if (data != null) {
+      switch (data) {
+        case r'coin': return TransactionItemTypeEnum.coin;
+        case r'token': return TransactionItemTypeEnum.token;
+        default:
+          if (!allowNull) {
+            throw ArgumentError('Unknown enum value to decode: $data');
+          }
+      }
+    }
+    return null;
+  }
+
+  /// Singleton [TransactionItemTypeEnumTypeTransformer] instance.
+  static TransactionItemTypeEnumTypeTransformer? _instance;
+}
+
+
+
+class TransactionItemStatusEnum {
+  /// Instantiate a new enum with the provided [value].
+  const TransactionItemStatusEnum._(this.value);
+
+  /// The underlying value of this enum member.
+  final String value;
+
+  @override
+  String toString() => value;
+
+  String toJson() => value;
+
+  static const success = TransactionItemStatusEnum._(r'success');
+  static const failed = TransactionItemStatusEnum._(r'failed');
+  static const pending = TransactionItemStatusEnum._(r'pending');
+
+  /// List of all possible values in this [enum][TransactionItemStatusEnum].
+  static const values = <TransactionItemStatusEnum>[
+    success,
+    failed,
+    pending,
+  ];
+
+  static TransactionItemStatusEnum? fromJson(dynamic value) => TransactionItemStatusEnumTypeTransformer().decode(value);
+
+  static List<TransactionItemStatusEnum> listFromJson(dynamic json, {bool growable = false,}) {
+    final result = <TransactionItemStatusEnum>[];
+    if (json is List && json.isNotEmpty) {
+      for (final row in json) {
+        final value = TransactionItemStatusEnum.fromJson(row);
+        if (value != null) {
+          result.add(value);
+        }
+      }
+    }
+    return result.toList(growable: growable);
+  }
+}
+
+/// Transformation class that can [encode] an instance of [TransactionItemStatusEnum] to String,
+/// and [decode] dynamic data back to [TransactionItemStatusEnum].
+class TransactionItemStatusEnumTypeTransformer {
+  factory TransactionItemStatusEnumTypeTransformer() => _instance ??= const TransactionItemStatusEnumTypeTransformer._();
+
+  const TransactionItemStatusEnumTypeTransformer._();
+
+  String encode(TransactionItemStatusEnum data) => data.value;
+
+  /// Decodes a [dynamic value][data] to a TransactionItemStatusEnum.
+  ///
+  /// If [allowNull] is true and the [dynamic value][data] cannot be decoded successfully,
+  /// then null is returned. However, if [allowNull] is false and the [dynamic value][data]
+  /// cannot be decoded successfully, then an [UnimplementedError] is thrown.
+  ///
+  /// The [allowNull] is very handy when an API changes and a new enum value is added or removed,
+  /// and users are still using an old app with the old code.
+  TransactionItemStatusEnum? decode(dynamic data, {bool allowNull = true}) {
+    if (data != null) {
+      switch (data) {
+        case r'success': return TransactionItemStatusEnum.success;
+        case r'failed': return TransactionItemStatusEnum.failed;
+        case r'pending': return TransactionItemStatusEnum.pending;
+        default:
+          if (!allowNull) {
+            throw ArgumentError('Unknown enum value to decode: $data');
+          }
+      }
+    }
+    return null;
+  }
+
+  /// Singleton [TransactionItemStatusEnumTypeTransformer] instance.
+  static TransactionItemStatusEnumTypeTransformer? _instance;
+}
+
+

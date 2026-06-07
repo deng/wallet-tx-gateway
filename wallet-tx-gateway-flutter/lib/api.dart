@@ -28,21 +28,20 @@ part 'auth/oauth.dart';
 part 'auth/http_basic_auth.dart';
 part 'auth/http_bearer_auth.dart';
 
-part 'api/transactions_api.dart';
 part 'api/chains_api.dart';
 part 'api/system_api.dart';
+part 'api/transactions_api.dart';
 
+part 'model/api_v1_chains_get200_response.dart';
 part 'model/api_v1_transactions_post200_response.dart';
 part 'model/api_v1_transactions_post400_response.dart';
-part 'model/api_v1_transactions_post502_response.dart';
 part 'model/api_v1_transactions_post504_response.dart';
 part 'model/api_v1_transactions_post_request.dart';
-part 'model/api_v1_chains_get200_response.dart';
-part 'model/transaction_item.dart';
-part 'model/tx_data.dart';
-part 'model/token_transfer.dart';
 part 'model/chain.dart';
 part 'model/health_get200_response.dart';
+part 'model/token_transfer.dart';
+part 'model/transaction_item.dart';
+part 'model/tx_data.dart';
 
 
 /// An [ApiClient] instance that uses the default values obtained from
