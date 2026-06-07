@@ -136,7 +136,7 @@ app.post('/api/v1/transactions', async (c) => {
   try {
     if (chainInfo.provider === 'evm') {
       const apiKey = c.req.header('X-Etherscan-Key') || c.env.ETHERSCAN_API_KEY;
-      const result = await fetchEvm(address, skip, limit, apiKey, chainInfo.baseUrl, chainInfo.symbol, chainInfo.chainId);
+      const result = await fetchEvm(address, skip, limit, apiKey, chainInfo.baseUrl, chainInfo.symbol, chainInfo.chainId, body.contractAddress);
       const allTxs = result.transactions;
       const data = { address, chain, transactions: allTxs };
       setCache(cacheKey, data, ttl);
@@ -144,7 +144,7 @@ app.post('/api/v1/transactions', async (c) => {
       return c.json({ success: true, data: { ...data, transactions: filtered } } satisfies TxResponse);
     } else if (chainInfo.provider === 'tron') {
       const apiKey = c.req.header('X-Trongrid-Key') || c.env.TRONGRID_API_KEY;
-      const result = await fetchTron(address, skip, limit, apiKey, chainInfo.baseUrl);
+      const result = await fetchTron(address, skip, limit, apiKey, chainInfo.baseUrl, body.contractAddress);
       const allTxs = result.transactions;
       const data = { address, chain, transactions: allTxs };
       setCache(cacheKey, data, ttl);
