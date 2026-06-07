@@ -8,17 +8,11 @@ export interface ChainInfo {
   provider: 'evm' | 'tron' | 'aptos' | 'solana' | 'sui';
   baseUrl: string;
   symbol: string;
+  chainId?: string; // for EVM chains (Etherscan V2 requires chainid param)
 }
 
-// EVM base URLs by chain
-const ETHERSCAN_BASE = 'https://api.etherscan.io/api';
-const ETHERSCAN_SEPOLIA_BASE = 'https://api-sepolia.etherscan.io/api';
-
-const BSCSCAN_BASE = 'https://api.bscscan.com/api';
-const BSCSCAN_TESTNET_BASE = 'https://api-testnet.bscscan.com/api';
-
-const POLYGONSCAN_BASE = 'https://api.polygonscan.com/api';
-const POLYGONSCAN_AMOY_BASE = 'https://api-amoy.polygonscan.com/api';
+// EVM base URL (Etherscan V2 — single endpoint for all chains)
+const ETHERSCAN_V2_BASE = 'https://api.etherscan.io/v2/api';
 
 // TRON base URLs
 const TRONGRID_MAINNET_BASE = 'https://api.trongrid.io';
@@ -44,16 +38,18 @@ const CHAIN_MAP: Record<string, ChainInfo> = {
     name: 'Ethereum',
     nativeCurrency: 'ETH',
     provider: 'evm',
-    baseUrl: ETHERSCAN_BASE,
+    baseUrl: ETHERSCAN_V2_BASE,
     symbol: 'ETH',
+    chainId: '1',
   },
   'eip155:11155111': {
     caip2: 'eip155:11155111',
     name: 'Ethereum Sepolia',
     nativeCurrency: 'ETH',
     provider: 'evm',
-    baseUrl: ETHERSCAN_SEPOLIA_BASE,
+    baseUrl: ETHERSCAN_V2_BASE,
     symbol: 'ETH',
+    chainId: '11155111',
   },
 
   // ---- EVM: BSC ----
@@ -62,16 +58,18 @@ const CHAIN_MAP: Record<string, ChainInfo> = {
     name: 'BNB Smart Chain',
     nativeCurrency: 'BNB',
     provider: 'evm',
-    baseUrl: BSCSCAN_BASE,
+    baseUrl: ETHERSCAN_V2_BASE,
     symbol: 'BNB',
+    chainId: '56',
   },
   'eip155:97': {
     caip2: 'eip155:97',
     name: 'BNB Smart Chain Testnet',
     nativeCurrency: 'BNB',
     provider: 'evm',
-    baseUrl: BSCSCAN_TESTNET_BASE,
+    baseUrl: ETHERSCAN_V2_BASE,
     symbol: 'BNB',
+    chainId: '97',
   },
 
   // ---- EVM: Polygon ----
@@ -80,16 +78,18 @@ const CHAIN_MAP: Record<string, ChainInfo> = {
     name: 'Polygon',
     nativeCurrency: 'POL',
     provider: 'evm',
-    baseUrl: POLYGONSCAN_BASE,
+    baseUrl: ETHERSCAN_V2_BASE,
     symbol: 'POL',
+    chainId: '137',
   },
   'eip155:80002': {
     caip2: 'eip155:80002',
     name: 'Polygon Amoy',
     nativeCurrency: 'POL',
     provider: 'evm',
-    baseUrl: POLYGONSCAN_AMOY_BASE,
+    baseUrl: ETHERSCAN_V2_BASE,
     symbol: 'POL',
+    chainId: '80002',
   },
 
   // ---- TRON ----

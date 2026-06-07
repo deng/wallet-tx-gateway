@@ -120,7 +120,7 @@ app.post('/api/v1/transactions', async (c) => {
   try {
     if (chainInfo.provider === 'evm') {
       const apiKey = c.req.header('X-Etherscan-Key') || c.env.ETHERSCAN_API_KEY;
-      const result = await fetchEvm(address, skip, limit, apiKey, chainInfo.baseUrl, chainInfo.symbol);
+      const result = await fetchEvm(address, skip, limit, apiKey, chainInfo.baseUrl, chainInfo.symbol, chainInfo.chainId);
       const data = { address, chain, transactions: result.transactions };
       setCache(cacheKey, data, ttl);
       return c.json({ success: true, data } satisfies TxResponse);

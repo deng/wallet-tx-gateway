@@ -59,6 +59,12 @@ function normalizeTx(item: EtherscanTx, symbol: string, decimals: number | null,
   };
 }
 
+function buildUrl(baseUrl: string, action: string, address: string, chainId: string, page: number, offset: number, sort: string, apiKey?: string): string {
+  let url = `${baseUrl}?chainid=${chainId}&module=account&action=${action}&address=${encodeURIComponent(address)}&page=${page}&offset=${offset}&sort=${sort}`;
+  if (apiKey) url += `&apikey=${apiKey}`;
+  return url;
+}
+
 export async function fetchTransactions(
   address: string,
   skip: number,
@@ -66,16 +72,22 @@ export async function fetchTransactions(
   apiKey: string | undefined,
   baseUrl: string,
   symbol: string,
+  chainId: string | undefined,
 ): Promise<{ total: number; transactions: TransactionItem[] }> {
-  const pageSize = skip + limit; // fetch enough from upstream, then slice
+  if (!chainId) {
+    throw new Error('Etherscan API error: missing chainId');
+  }
+
+  const pageSize = skip + limit;
   const page = 1;
   const offset = pageSize;
+  const sort = 'desc';
 
   const [txlistRes, tokentxRes] = await Promise.all([
-    fetch(`${baseUrl}?module=account&action=txlist&address=${encodeURIComponent(address)}&page=${page}&offset=${offset}&sort=desc${apiKey ? `&apikey=${apiKey}` : ''}`, {
+    fetch(buildUrl(baseUrl, 'txlist', address, chainId, page, offset, sort, apiKey), {
       signal: AbortSignal.timeout(10_000),
     }),
-    fetch(`${baseUrl}?module=account&action=tokentx&address=${encodeURIComponent(address)}&page=${page}&offset=${offset}&sort=desc${apiKey ? `&apikey=${apiKey}` : ''}`, {
+    fetch(buildUrl(baseUrl, 'tokentx', address, chainId, page, offset, sort, apiKey), {
       signal: AbortSignal.timeout(10_000),
     }),
   ]);
@@ -113,7 +125,6 @@ export async function fetchTransactions(
     ));
   }
 
-  // Sort by timestamp descending
   txs.sort((a, b) => b.timestamp - a.timestamp);
 
   const total = txs.length;
