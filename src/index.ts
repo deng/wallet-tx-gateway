@@ -92,8 +92,8 @@ app.post('/api/v1/transactions', async (c) => {
   if (!body.chain) {
     return c.json({ success: false, error: "Field 'chain' is required" } satisfies TxResponse, 400);
   }
-  if (body.type !== undefined && body.type !== 'coin' && body.type !== 'token') {
-    return c.json({ success: false, error: "Field 'type' must be 'coin' or 'token'" } satisfies TxResponse, 400);
+  if (body.type != null && body.type !== 'coin' && body.type !== 'token') {
+    return c.json({ success: false, error: "Field 'type' must be 'coin', 'token', or null" } satisfies TxResponse, 400);
   }
 
   const chainInfo = getChainInfo(body.chain);

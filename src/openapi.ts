@@ -97,8 +97,9 @@ export const openApiSpec = {
                   },
                   type: {
                     type: 'string',
-                    description: 'Filter by transaction type',
+                    description: 'Filter by transaction type (null/omit for all)',
                     enum: ['coin', 'token'],
+                    nullable: true,
                   },
                   contractAddress: {
                     type: 'string',
