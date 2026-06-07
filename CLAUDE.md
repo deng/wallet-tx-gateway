@@ -59,3 +59,34 @@ Testnet chains are supported with their respective chain IDs.
 - `sui.ts` — SUI + testnet via Suiscan
 
 **Caching:** In-memory Map with 30s TTL, stale cache fallback on upstream failure.
+
+## Generated Flutter SDK
+
+`wallet-tx-gateway-flutter/` is an auto-generated Flutter package from the live spec via `openapi-generator`:
+
+```yaml
+dependencies:
+  wallet_tx_gateway:
+    path: ../wallet-tx/wallet-tx-gateway-flutter
+```
+
+Usage:
+```dart
+final api = TransactionsApi();
+
+final result = await api.apiV1TransactionsPost(ApiV1TransactionsPostRequest(
+  address: '0x...',
+  chain: 'eip155:1',
+));
+for (final tx in result.data!.transactions!) {
+  print('${tx.txHash}: ${tx.value} ${tx.symbol}');
+}
+
+// List supported chains
+final chainsApi = ChainsApi();
+final chains = await chainsApi.apiV1ChainsGet();
+
+// Health check
+final systemApi = SystemApi();
+final health = await systemApi.healthGet();
+```
