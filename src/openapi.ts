@@ -95,6 +95,16 @@ export const openApiSpec = {
                     minimum: 1,
                     maximum: 50,
                   },
+                  type: {
+                    type: 'string',
+                    description: 'Filter by transaction type',
+                    enum: ['coin', 'token'],
+                  },
+                  contractAddress: {
+                    type: 'string',
+                    description: 'Filter by token contract address',
+                    example: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+                  },
                 },
               },
             },

@@ -8,7 +8,7 @@ import { fetchTransactions as fetchTron } from './providers/tron';
 import { fetchTransactions as fetchAptos } from './providers/aptos';
 import { fetchTransactions as fetchSolana } from './providers/solana';
 import { fetchTransactions as fetchSui } from './providers/sui';
-import type { Env, TxResponse, ChainsResponse, HealthResponse } from './types';
+import type { Env, TxResponse, ChainsResponse, HealthResponse, TransactionItem } from './types';
 
 interface CacheEntry {
   data: any;
@@ -36,6 +36,17 @@ function setCache(key: string, data: any, ttl: number): void {
 
 export function resetCache(): void {
   cache.clear();
+}
+
+function filterTransactions(txs: TransactionItem[], type?: string, contractAddress?: string): TransactionItem[] {
+  let filtered = txs;
+  if (type) {
+    filtered = filtered.filter((tx) => tx.type === type);
+  }
+  if (contractAddress) {
+    filtered = filtered.filter((tx) => tx.contractAddress?.toLowerCase() === contractAddress.toLowerCase());
+  }
+  return filtered;
 }
 
 const app = new Hono<{ Bindings: Env }>();
@@ -68,7 +79,7 @@ app.get('/api/v1/chains', (c) => {
 });
 
 app.post('/api/v1/transactions', async (c) => {
-  let body: { address?: string; chain?: string; skip?: number; limit?: number };
+  let body: { address?: string; chain?: string; skip?: number; limit?: number; type?: string; contractAddress?: string };
   try {
     body = await c.req.json();
   } catch {
@@ -80,6 +91,9 @@ app.post('/api/v1/transactions', async (c) => {
   }
   if (!body.chain) {
     return c.json({ success: false, error: "Field 'chain' is required" } satisfies TxResponse, 400);
+  }
+  if (body.type !== undefined && body.type !== 'coin' && body.type !== 'token') {
+    return c.json({ success: false, error: "Field 'type' must be 'coin' or 'token'" } satisfies TxResponse, 400);
   }
 
   const chainInfo = getChainInfo(body.chain);
@@ -99,13 +113,15 @@ app.post('/api/v1/transactions', async (c) => {
 
   const cached = getCached(cacheKey);
   if (cached) {
-    return c.json({ success: true, data: cached } satisfies TxResponse);
+    const filtered = filterTransactions(cached.transactions, body.type, body.contractAddress);
+    return c.json({ success: true, data: { ...cached, transactions: filtered } } satisfies TxResponse);
   }
 
   function handleUpstreamError(err: unknown): Response {
     const stale = getCached(cacheKey, true);
     if (stale) {
-      return c.json({ success: true, data: stale } satisfies TxResponse);
+      const filtered = filterTransactions(stale.transactions, body.type, body.contractAddress);
+      return c.json({ success: true, data: { ...stale, transactions: filtered } } satisfies TxResponse);
     }
     const message = (err as Error).message;
     if (err instanceof DOMException && err.name === 'AbortError') {
@@ -121,32 +137,42 @@ app.post('/api/v1/transactions', async (c) => {
     if (chainInfo.provider === 'evm') {
       const apiKey = c.req.header('X-Etherscan-Key') || c.env.ETHERSCAN_API_KEY;
       const result = await fetchEvm(address, skip, limit, apiKey, chainInfo.baseUrl, chainInfo.symbol, chainInfo.chainId);
-      const data = { address, chain, transactions: result.transactions };
+      const allTxs = result.transactions;
+      const data = { address, chain, transactions: allTxs };
       setCache(cacheKey, data, ttl);
-      return c.json({ success: true, data } satisfies TxResponse);
+      const filtered = filterTransactions(allTxs, body.type, body.contractAddress);
+      return c.json({ success: true, data: { ...data, transactions: filtered } } satisfies TxResponse);
     } else if (chainInfo.provider === 'tron') {
       const apiKey = c.req.header('X-Trongrid-Key') || c.env.TRONGRID_API_KEY;
       const result = await fetchTron(address, skip, limit, apiKey, chainInfo.baseUrl);
-      const data = { address, chain, transactions: result.transactions };
+      const allTxs = result.transactions;
+      const data = { address, chain, transactions: allTxs };
       setCache(cacheKey, data, ttl);
-      return c.json({ success: true, data } satisfies TxResponse);
+      const filtered = filterTransactions(allTxs, body.type, body.contractAddress);
+      return c.json({ success: true, data: { ...data, transactions: filtered } } satisfies TxResponse);
     } else if (chainInfo.provider === 'aptos') {
       const result = await fetchAptos(address, skip, limit, undefined, chainInfo.baseUrl);
-      const data = { address, chain, transactions: result.transactions };
+      const allTxs = result.transactions;
+      const data = { address, chain, transactions: allTxs };
       setCache(cacheKey, data, ttl);
-      return c.json({ success: true, data } satisfies TxResponse);
+      const filtered = filterTransactions(allTxs, body.type, body.contractAddress);
+      return c.json({ success: true, data: { ...data, transactions: filtered } } satisfies TxResponse);
     } else if (chainInfo.provider === 'solana') {
       const apiKey = c.req.header('X-Solscan-Key') || c.env.SOLSCAN_API_KEY;
       const result = await fetchSolana(address, skip, limit, apiKey, chainInfo.baseUrl);
-      const data = { address, chain, transactions: result.transactions };
+      const allTxs = result.transactions;
+      const data = { address, chain, transactions: allTxs };
       setCache(cacheKey, data, ttl);
-      return c.json({ success: true, data } satisfies TxResponse);
+      const filtered = filterTransactions(allTxs, body.type, body.contractAddress);
+      return c.json({ success: true, data: { ...data, transactions: filtered } } satisfies TxResponse);
     } else if (chainInfo.provider === 'sui') {
       const apiKey = c.req.header('X-Suiscan-Key') || c.env.SUISCAN_API_KEY;
       const result = await fetchSui(address, skip, limit, apiKey, chainInfo.baseUrl);
-      const data = { address, chain, transactions: result.transactions };
+      const allTxs = result.transactions;
+      const data = { address, chain, transactions: allTxs };
       setCache(cacheKey, data, ttl);
-      return c.json({ success: true, data } satisfies TxResponse);
+      const filtered = filterTransactions(allTxs, body.type, body.contractAddress);
+      return c.json({ success: true, data: { ...data, transactions: filtered } } satisfies TxResponse);
     }
     return c.json({ success: false, error: `Provider '${chainInfo.provider}' not yet implemented` } satisfies TxResponse, 502);
   } catch (err) {
