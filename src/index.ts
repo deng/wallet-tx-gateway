@@ -1,0 +1,132 @@
+import { Hono } from 'hono';
+import { cors } from 'hono/cors';
+import { swaggerUI } from '@hono/swagger-ui';
+import { getChainInfo, getAllChains } from './chains';
+import { openApiSpec } from './openapi';
+import { fetchTransactions as fetchEvm } from './providers/evm';
+import type { Env, TxResponse, ChainsResponse, HealthResponse } from './types';
+
+interface CacheEntry {
+  data: any;
+  expiresAt: number;
+}
+
+const cache = new Map<string, CacheEntry>();
+
+function getCacheKey(chain: string, address: string): string {
+  return `${chain}:${address.toLowerCase()}`;
+}
+
+function getCached(key: string, acceptStale = false): any {
+  const entry = cache.get(key);
+  if (!entry) return undefined;
+  if (acceptStale || Date.now() < entry.expiresAt) {
+    return entry.data;
+  }
+  return undefined;
+}
+
+function setCache(key: string, data: any, ttl: number): void {
+  cache.set(key, { data, expiresAt: Date.now() + ttl * 1000 });
+}
+
+export function resetCache(): void {
+  cache.clear();
+}
+
+const app = new Hono<{ Bindings: Env }>();
+
+app.use('*', cors({
+  origin: '*',
+  allowMethods: ['GET', 'POST', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'X-Etherscan-Key', 'X-Trongrid-Key', 'X-Solscan-Key', 'X-Suiscan-Key'],
+  maxAge: 86400,
+}));
+
+app.get('/openapi.json', (c) => c.json(openApiSpec));
+app.get('/docs', swaggerUI({ url: '/openapi.json' }));
+
+app.get('/health', (c) => {
+  return c.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    version: '0.1.0',
+  } satisfies HealthResponse);
+});
+
+app.get('/api/v1/chains', (c) => {
+  const chains = getAllChains().map((ci) => ({
+    chain: ci.caip2,
+    name: ci.name,
+    nativeCurrency: ci.nativeCurrency,
+  }));
+  return c.json({ success: true, data: chains } satisfies ChainsResponse);
+});
+
+app.post('/api/v1/transactions', async (c) => {
+  let body: { address?: string; chain?: string; skip?: number; limit?: number };
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ success: false, error: 'Invalid JSON body' } satisfies TxResponse, 400);
+  }
+
+  if (!body.address) {
+    return c.json({ success: false, error: "Field 'address' is required" } satisfies TxResponse, 400);
+  }
+  if (!body.chain) {
+    return c.json({ success: false, error: "Field 'chain' is required" } satisfies TxResponse, 400);
+  }
+
+  const chainInfo = getChainInfo(body.chain);
+  if (!chainInfo) {
+    const supported = getAllChains().map((c) => c.caip2).join(', ');
+    return c.json({
+      success: false,
+      error: `Unsupported chain: '${body.chain}'. Supported: ${supported}`,
+    } satisfies TxResponse, 400);
+  }
+
+  const { address, chain } = body;
+  const skip = body.skip ?? 0;
+  const limit = Math.min(body.limit ?? 20, 50);
+  const cacheKey = getCacheKey(chain, address);
+  const ttl = parseInt(c.env.TX_CACHE_TTL || '30', 10);
+
+  const cached = getCached(cacheKey);
+  if (cached) {
+    return c.json({ success: true, data: cached } satisfies TxResponse);
+  }
+
+  function handleUpstreamError(err: unknown): Response {
+    const stale = getCached(cacheKey, true);
+    if (stale) {
+      return c.json({ success: true, data: stale } satisfies TxResponse);
+    }
+    const message = (err as Error).message;
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      return c.json({ success: false, error: 'Upstream API timeout' } satisfies TxResponse, 504);
+    }
+    if (message.startsWith('Etherscan API error:')) {
+      return c.json({ success: false, error: message } satisfies TxResponse, 502);
+    }
+    return c.json({ success: false, error: 'Upstream request failed' } satisfies TxResponse, 502);
+  }
+
+  try {
+    if (chainInfo.provider === 'evm') {
+      const apiKey = c.req.header('X-Etherscan-Key') || c.env.ETHERSCAN_API_KEY;
+      const result = await fetchEvm(address, skip, limit, apiKey, chainInfo.baseUrl, chainInfo.symbol);
+      const data = { address, chain, transactions: result.transactions };
+      setCache(cacheKey, data, ttl);
+      return c.json({ success: true, data } satisfies TxResponse);
+    }
+    return c.json({ success: false, error: `Provider '${chainInfo.provider}' not yet implemented` } satisfies TxResponse, 502);
+  } catch (err) {
+    return handleUpstreamError(err);
+  }
+});
+
+export default {
+  fetch: app.fetch,
+};
