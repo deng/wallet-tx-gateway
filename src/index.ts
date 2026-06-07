@@ -5,6 +5,7 @@ import { getChainInfo, getAllChains } from './chains';
 import { openApiSpec } from './openapi';
 import { fetchTransactions as fetchEvm } from './providers/evm';
 import { fetchTransactions as fetchTron } from './providers/tron';
+import { fetchTransactions as fetchAptos } from './providers/aptos';
 import type { Env, TxResponse, ChainsResponse, HealthResponse } from './types';
 
 interface CacheEntry {
@@ -108,7 +109,7 @@ app.post('/api/v1/transactions', async (c) => {
     if (err instanceof DOMException && err.name === 'AbortError') {
       return c.json({ success: false, error: 'Upstream API timeout' } satisfies TxResponse, 504);
     }
-    if (message.startsWith('Etherscan API error:') || message.startsWith('Trongrid API error:')) {
+    if (message.startsWith('Etherscan API error:') || message.startsWith('Trongrid API error:') || message.startsWith('Aptos API error:')) {
       return c.json({ success: false, error: message } satisfies TxResponse, 502);
     }
     return c.json({ success: false, error: 'Upstream request failed' } satisfies TxResponse, 502);
@@ -124,6 +125,11 @@ app.post('/api/v1/transactions', async (c) => {
     } else if (chainInfo.provider === 'tron') {
       const apiKey = c.req.header('X-Trongrid-Key') || c.env.TRONGRID_API_KEY;
       const result = await fetchTron(address, skip, limit, apiKey, chainInfo.baseUrl);
+      const data = { address, chain, transactions: result.transactions };
+      setCache(cacheKey, data, ttl);
+      return c.json({ success: true, data } satisfies TxResponse);
+    } else if (chainInfo.provider === 'aptos') {
+      const result = await fetchAptos(address, skip, limit, undefined, chainInfo.baseUrl);
       const data = { address, chain, transactions: result.transactions };
       setCache(cacheKey, data, ttl);
       return c.json({ success: true, data } satisfies TxResponse);
