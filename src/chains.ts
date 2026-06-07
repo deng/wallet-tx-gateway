@@ -33,9 +33,9 @@ const APTOS_TESTNET_BASE = 'https://testnet.aptoslabs.com/v1';
 const SOLSCAN_MAINNET_BASE = 'https://pro-api.solscan.io';
 const SOLSCAN_DEVNET_BASE = 'https://pro-api.solscan.io';
 
-// Sui base URLs
-const SUISCAN_MAINNET_BASE = 'https://api.suiscan.xyz/api';
-const SUISCAN_TESTNET_BASE = 'https://api-testnet.suiscan.xyz/api';
+// Sui base URLs (Blockberry API)
+const SUISCAN_MAINNET_BASE = 'https://api.blockberry.one/sui';
+const SUISCAN_TESTNET_BASE = 'https://api.blockberry.one/sui';
 
 const CHAIN_MAP: Record<string, ChainInfo> = {
   // ---- EVM: Ethereum ----

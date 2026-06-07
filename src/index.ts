@@ -111,7 +111,7 @@ app.post('/api/v1/transactions', async (c) => {
     if (err instanceof DOMException && err.name === 'AbortError') {
       return c.json({ success: false, error: 'Upstream API timeout' } satisfies TxResponse, 504);
     }
-    if (message.startsWith('Etherscan API error:') || message.startsWith('Trongrid API error:') || message.startsWith('Aptos API error:') || message.startsWith('Solscan API error:') || message.startsWith('Suiscan API error:')) {
+    if (message.startsWith('Etherscan API error:') || message.startsWith('Trongrid API error:') || message.startsWith('Aptos API error:') || message.startsWith('Solscan API error:') || message.startsWith('Blockberry API error:')) {
       return c.json({ success: false, error: message } satisfies TxResponse, 502);
     }
     return c.json({ success: false, error: 'Upstream request failed' } satisfies TxResponse, 502);

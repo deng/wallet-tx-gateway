@@ -1,20 +1,29 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 
-const MOCK_SUI_TXS = {
-  data: [
+const MOCK_BLOCKBERRY_TXS = {
+  content: [
     {
-      transactionDigest: '0xsuihash1',
-      timestampMs: '1717000000000',
-      sender: '0xfromsui',
-      effects: { status: { status: 'success' } },
+      txHash: '0xsuihash1',
+      senderAddress: '0xfromsui',
+      recipients: ['0xtosui'],
+      txStatus: 'SUCCESS',
+      fee: 100000,
+      timestamp: 1717000000000,
+      checkpoint: 12345,
       balanceChanges: [
-        { owner: { AddressOwner: '0xfromsui' }, coinType: '0x2::sui::SUI', amount: '-1000000000' },
-        { owner: { AddressOwner: '0xtosui' }, coinType: '0x2::sui::SUI', amount: '1000000000' },
+        { owner: { addressOwner: '0xfromsui' }, coinType: '0x2::sui::SUI', amount: '-1000000000' },
+        { owner: { addressOwner: '0xtosui' }, coinType: '0x2::sui::SUI', amount: '1000000000' },
       ],
-      gasFee: { gasUsed: 1000, gasPrice: 100 },
     },
   ],
-  total: 1,
+  nextCursor: null,
+  hasNextPage: false,
+};
+
+const MOCK_BLOCKBERRY_EMPTY = {
+  content: [],
+  nextCursor: null,
+  hasNextPage: false,
 };
 
 const mockEnv = {
@@ -34,16 +43,21 @@ async function createApp() {
   return mod.default;
 }
 
-describe('SUI Provider', () => {
+describe('SUI Provider (Blockberry)', () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it('should return SUI transactions', async () => {
+  it('should return SUI transactions from Blockberry API', async () => {
+    let callCount = 0;
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
       const url = typeof input === 'string' ? input : (input instanceof Request ? input.url : input.toString());
-      if (url.includes('suiscan.xyz')) {
-        return new Response(JSON.stringify(MOCK_SUI_TXS), { status: 200 });
+      callCount++;
+      if (url.includes('blockberry.one') && url.includes('SENDER')) {
+        return new Response(JSON.stringify(MOCK_BLOCKBERRY_TXS), { status: 200 });
+      }
+      if (url.includes('blockberry.one') && url.includes('RECEIVER')) {
+        return new Response(JSON.stringify(MOCK_BLOCKBERRY_EMPTY), { status: 200 });
       }
       throw new Error('unexpected URL: ' + url);
     });
@@ -70,11 +84,15 @@ describe('SUI Provider', () => {
     expect(txs[0].txHash).toBe('0xsuihash1');
     expect(txs[0].type).toBe('coin');
     expect(txs[0].symbol).toBe('SUI');
+    expect(txs[0].from).toBe('0xfromsui');
+    expect(txs[0].to).toBe('0xtosui');
+    expect(txs[0].blockNumber).toBe(12345);
+    expect(callCount).toBe(2); // SENDER + RECEIVER
   });
 
-  it('should use X-Suiscan-Key header', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      new Response(JSON.stringify({ data: [], total: 0 }), { status: 200 }),
+  it('should use X-Suiscan-Key header with Blockberry', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () =>
+      new Response(JSON.stringify({ content: [], nextCursor: null, hasNextPage: false }), { status: 200 }),
     );
     const app = await createApp();
     const res = await app.fetch(
