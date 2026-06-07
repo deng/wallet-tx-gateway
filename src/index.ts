@@ -7,6 +7,7 @@ import { fetchTransactions as fetchEvm } from './providers/evm';
 import { fetchTransactions as fetchTron } from './providers/tron';
 import { fetchTransactions as fetchAptos } from './providers/aptos';
 import { fetchTransactions as fetchSolana } from './providers/solana';
+import { fetchTransactions as fetchSui } from './providers/sui';
 import type { Env, TxResponse, ChainsResponse, HealthResponse } from './types';
 
 interface CacheEntry {
@@ -110,7 +111,7 @@ app.post('/api/v1/transactions', async (c) => {
     if (err instanceof DOMException && err.name === 'AbortError') {
       return c.json({ success: false, error: 'Upstream API timeout' } satisfies TxResponse, 504);
     }
-    if (message.startsWith('Etherscan API error:') || message.startsWith('Trongrid API error:') || message.startsWith('Aptos API error:') || message.startsWith('Solscan API error:')) {
+    if (message.startsWith('Etherscan API error:') || message.startsWith('Trongrid API error:') || message.startsWith('Aptos API error:') || message.startsWith('Solscan API error:') || message.startsWith('Suiscan API error:')) {
       return c.json({ success: false, error: message } satisfies TxResponse, 502);
     }
     return c.json({ success: false, error: 'Upstream request failed' } satisfies TxResponse, 502);
@@ -137,6 +138,12 @@ app.post('/api/v1/transactions', async (c) => {
     } else if (chainInfo.provider === 'solana') {
       const apiKey = c.req.header('X-Solscan-Key') || c.env.SOLSCAN_API_KEY;
       const result = await fetchSolana(address, skip, limit, apiKey, chainInfo.baseUrl);
+      const data = { address, chain, transactions: result.transactions };
+      setCache(cacheKey, data, ttl);
+      return c.json({ success: true, data } satisfies TxResponse);
+    } else if (chainInfo.provider === 'sui') {
+      const apiKey = c.req.header('X-Suiscan-Key') || c.env.SUISCAN_API_KEY;
+      const result = await fetchSui(address, skip, limit, apiKey, chainInfo.baseUrl);
       const data = { address, chain, transactions: result.transactions };
       setCache(cacheKey, data, ttl);
       return c.json({ success: true, data } satisfies TxResponse);
