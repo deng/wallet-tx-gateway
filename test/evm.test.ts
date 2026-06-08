@@ -132,7 +132,7 @@ describe('EVM Provider (ETH/BSC/POL)', () => {
     expect(txs[0].value).toBe('50'); // 50000000 / 10^6
     expect(txs[0].decimals).toBe(6);
     expect(txs[0].tokenTransfers).toHaveLength(1);
-    expect(txs[0].tokenTransfers![0].value).toBe('50');
+    expect((txs[0].tokenTransfers as Array<Record<string, unknown>>)[0].value).toBe('50');
 
     // Coin tx second (timestamp 1717000000)
     expect(txs[1].txHash).toBe('0xabc123def456');

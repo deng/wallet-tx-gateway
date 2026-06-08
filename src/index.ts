@@ -17,8 +17,8 @@ interface CacheEntry {
 
 const cache = new Map<string, CacheEntry>();
 
-function getCacheKey(chain: string, address: string): string {
-  return `${chain}:${address.toLowerCase()}`;
+function getCacheKey(chain: string, address: string, skip: number, limit: number): string {
+  return `${chain}:${address.toLowerCase()}:${skip}:${limit}`;
 }
 
 function getCached(key: string, acceptStale = false): any {
@@ -108,7 +108,7 @@ app.post('/api/v1/transactions', async (c) => {
   const { address, chain } = body;
   const skip = body.skip ?? 0;
   const limit = Math.min(body.limit ?? 20, 50);
-  const cacheKey = getCacheKey(chain, address);
+  const cacheKey = getCacheKey(chain, address, skip, limit);
   const ttl = parseInt(c.env.TX_CACHE_TTL || '30', 10);
 
   const cached = getCached(cacheKey);
