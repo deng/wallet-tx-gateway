@@ -1,6 +1,5 @@
 // src/providers/aptos.ts
 import { TransactionItem } from '../types';
-import { toLiteral } from '../utils';
 
 interface AptosTx {
   version: string;
@@ -51,7 +50,7 @@ export async function fetchTransactions(
       type: 'coin',
       from: tx.sender,
       to: '',
-      value: toLiteral(value, 8),
+      value: value,
       symbol: 'APT',
       decimals: 8,
       contractAddress: null,

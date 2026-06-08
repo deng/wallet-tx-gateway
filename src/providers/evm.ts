@@ -1,5 +1,4 @@
 import { TransactionItem, TokenTransfer } from '../types';
-import { toLiteral } from '../utils';
 
 interface EtherscanTx {
   blockNumber: string;
@@ -102,7 +101,7 @@ export async function fetchTransactions(
     const tokenResults = data.result as EtherscanTokenTx[];
     for (const item of tokenResults) {
       const tokenDecimals = parseInt(item.tokenDecimal, 10) || null;
-      txs.push(normalizeTx(item, item.tokenSymbol, toLiteral(item.value, tokenDecimals), tokenDecimals, item.contractAddress));
+      txs.push(normalizeTx(item, item.tokenSymbol, item.value, tokenDecimals, item.contractAddress));
     }
   } else {
     const [txlistRes, tokentxRes] = await Promise.all([
@@ -135,11 +134,11 @@ export async function fetchTransactions(
     const tokenResults = tokenData.result as EtherscanTokenTx[];
 
     for (const item of txResults) {
-      txs.push(normalizeTx(item, symbol, toLiteral(item.value, nativeDecimals), nativeDecimals, null));
+      txs.push(normalizeTx(item, symbol, item.value, nativeDecimals, null));
     }
     for (const item of tokenResults) {
       const tokenDecimals = parseInt(item.tokenDecimal, 10) || null;
-      txs.push(normalizeTx(item, item.tokenSymbol, toLiteral(item.value, tokenDecimals), tokenDecimals, item.contractAddress));
+      txs.push(normalizeTx(item, item.tokenSymbol, item.value, tokenDecimals, item.contractAddress));
     }
   }
 

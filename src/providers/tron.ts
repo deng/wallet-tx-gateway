@@ -1,6 +1,5 @@
 // src/providers/tron.ts
 import { TransactionItem } from '../types';
-import { toLiteral } from '../utils';
 
 interface TrongridTx {
   txID: string;
@@ -57,7 +56,6 @@ export async function fetchTransactions(
     }
     const data = await res.json() as TrongridResponse<TrongridTrc20Tx>;
     for (const item of data.data) {
-      const tokenValue = toLiteral(item.value, item.token_info.decimals);
       entries.push({
         rawTs: item.block_timestamp,
         tx: {
@@ -65,7 +63,7 @@ export async function fetchTransactions(
           type: 'token',
           from: item.from,
           to: item.to,
-          value: tokenValue,
+          value: item.value,
           symbol: item.token_info.symbol,
           decimals: item.token_info.decimals,
           contractAddress: item.token_info.address,
@@ -79,7 +77,7 @@ export async function fetchTransactions(
             symbol: item.token_info.symbol,
             from: item.from,
             to: item.to,
-            value: tokenValue,
+            value: item.value,
             decimals: item.token_info.decimals,
           }],
         },
@@ -113,7 +111,7 @@ export async function fetchTransactions(
           type: 'coin',
           from: item.from,
           to: item.to,
-          value: toLiteral(amount, 6),
+          value: amount,
           symbol: 'TRX',
           decimals: 6,
           contractAddress: null,
@@ -128,7 +126,6 @@ export async function fetchTransactions(
     }
 
     for (const item of trc20Data.data) {
-      const tokenValue = toLiteral(item.value, item.token_info.decimals);
       entries.push({
         rawTs: item.block_timestamp,
         tx: {
@@ -136,7 +133,7 @@ export async function fetchTransactions(
           type: 'token',
           from: item.from,
           to: item.to,
-          value: tokenValue,
+          value: item.value,
           symbol: item.token_info.symbol,
           decimals: item.token_info.decimals,
           contractAddress: item.token_info.address,
@@ -150,7 +147,7 @@ export async function fetchTransactions(
             symbol: item.token_info.symbol,
             from: item.from,
             to: item.to,
-            value: tokenValue,
+            value: item.value,
             decimals: item.token_info.decimals,
           }],
         },
