@@ -1,5 +1,4 @@
 .gitignore
-.openapi-generator-ignore
 .travis.yml
 README.md
 analysis_options.yaml
@@ -40,16 +39,3 @@ lib/model/token_transfer.dart
 lib/model/transaction_item.dart
 lib/model/tx_data.dart
 pubspec.yaml
-test/api_v1_chains_get200_response_test.dart
-test/api_v1_transactions_post200_response_test.dart
-test/api_v1_transactions_post400_response_test.dart
-test/api_v1_transactions_post504_response_test.dart
-test/api_v1_transactions_post_request_test.dart
-test/chain_test.dart
-test/chains_api_test.dart
-test/health_get200_response_test.dart
-test/system_api_test.dart
-test/token_transfer_test.dart
-test/transaction_item_test.dart
-test/transactions_api_test.dart
-test/tx_data_test.dart

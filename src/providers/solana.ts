@@ -1,5 +1,6 @@
 // src/providers/solana.ts
 import { TransactionItem } from '../types';
+import { toLiteral } from '../utils';
 
 interface SolscanTransfer {
   txHash: string;
@@ -61,7 +62,7 @@ export async function fetchTransactions(
       type: 'coin',
       from: item.fromAddress,
       to: item.toAddress,
-      value: item.amount.toString(),
+      value: toLiteral(item.amount.toString(), 9),
       symbol: 'SOL',
       decimals: 9,
       contractAddress: null,
@@ -75,12 +76,13 @@ export async function fetchTransactions(
   }
 
   for (const item of splData.data ?? []) {
+    const splValue = toLiteral(item.amount.toString(), item.decimals);
     txs.push({
       txHash: item.txHash,
       type: 'token',
       from: item.fromAddress,
       to: item.toAddress,
-      value: item.amount.toString(),
+      value: splValue,
       symbol: item.tokenSymbol,
       decimals: item.decimals,
       contractAddress: item.tokenAddress,
@@ -94,7 +96,7 @@ export async function fetchTransactions(
         symbol: item.tokenSymbol,
         from: item.fromAddress,
         to: item.toAddress,
-        value: item.amount.toString(),
+        value: splValue,
         decimals: item.decimals,
       }],
     });

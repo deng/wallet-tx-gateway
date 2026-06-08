@@ -1,4 +1,5 @@
 import { TransactionItem, TokenTransfer } from '../types';
+import { toLiteral } from '../utils';
 
 interface EtherscanTx {
   blockNumber: string;
@@ -26,7 +27,7 @@ interface EtherscanResponse {
   result: EtherscanTx[] | EtherscanTokenTx[];
 }
 
-function normalizeTx(item: EtherscanTx, symbol: string, decimals: number | null, contractAddress: string | null): TransactionItem {
+function normalizeTx(item: EtherscanTx, symbol: string, value: string, decimals: number | null, contractAddress: string | null): TransactionItem {
   const gasUsed = BigInt(item.gasUsed || '0');
   const gasPrice = BigInt(item.gasPrice || '0');
   const gasFee = (gasUsed * gasPrice).toString();
@@ -37,7 +38,7 @@ function normalizeTx(item: EtherscanTx, symbol: string, decimals: number | null,
     type: contractAddress ? 'token' : 'coin',
     from: item.from,
     to: item.to,
-    value: item.value,
+    value,
     symbol,
     decimals,
     contractAddress,
@@ -52,7 +53,7 @@ function normalizeTx(item: EtherscanTx, symbol: string, decimals: number | null,
           symbol,
           from: item.from,
           to: item.to,
-          value: item.value,
+          value,
           decimals,
         } as TokenTransfer]
       : [],
@@ -74,6 +75,7 @@ export async function fetchTransactions(
   baseUrl: string,
   symbol: string,
   chainId: string | undefined,
+  nativeDecimals: number,
   contractAddress?: string,
 ): Promise<{ total: number; transactions: TransactionItem[] }> {
   if (!chainId) {
@@ -99,7 +101,8 @@ export async function fetchTransactions(
     }
     const tokenResults = data.result as EtherscanTokenTx[];
     for (const item of tokenResults) {
-      txs.push(normalizeTx(item, item.tokenSymbol, parseInt(item.tokenDecimal, 10) || null, item.contractAddress));
+      const tokenDecimals = parseInt(item.tokenDecimal, 10) || null;
+      txs.push(normalizeTx(item, item.tokenSymbol, toLiteral(item.value, tokenDecimals), tokenDecimals, item.contractAddress));
     }
   } else {
     const [txlistRes, tokentxRes] = await Promise.all([
@@ -132,10 +135,11 @@ export async function fetchTransactions(
     const tokenResults = tokenData.result as EtherscanTokenTx[];
 
     for (const item of txResults) {
-      txs.push(normalizeTx(item, symbol, null, null));
+      txs.push(normalizeTx(item, symbol, toLiteral(item.value, nativeDecimals), nativeDecimals, null));
     }
     for (const item of tokenResults) {
-      txs.push(normalizeTx(item, item.tokenSymbol, parseInt(item.tokenDecimal, 10) || null, item.contractAddress));
+      const tokenDecimals = parseInt(item.tokenDecimal, 10) || null;
+      txs.push(normalizeTx(item, item.tokenSymbol, toLiteral(item.value, tokenDecimals), tokenDecimals, item.contractAddress));
     }
   }
 

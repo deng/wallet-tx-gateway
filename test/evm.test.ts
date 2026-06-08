@@ -129,13 +129,17 @@ describe('EVM Provider (ETH/BSC/POL)', () => {
     expect(txs[0].txHash).toBe('0xusdttxhash');
     expect(txs[0].type).toBe('token');
     expect(txs[0].symbol).toBe('USDT');
+    expect(txs[0].value).toBe('50'); // 50000000 / 10^6
+    expect(txs[0].decimals).toBe(6);
     expect(txs[0].tokenTransfers).toHaveLength(1);
+    expect(txs[0].tokenTransfers![0].value).toBe('50');
 
     // Coin tx second (timestamp 1717000000)
     expect(txs[1].txHash).toBe('0xabc123def456');
     expect(txs[1].type).toBe('coin');
     expect(txs[1].symbol).toBe('ETH');
-    expect(txs[1].value).toBe('1000000000000000000');
+    expect(txs[1].value).toBe('1'); // 10^18 / 10^18
+    expect(txs[1].decimals).toBe(18);
     expect(txs[1].status).toBe('success');
 
     // Failed coin tx third (timestamp 1716999999)

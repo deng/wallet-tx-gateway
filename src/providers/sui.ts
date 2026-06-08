@@ -1,5 +1,6 @@
 // src/providers/sui.ts — Blockberry API
 import { TransactionItem } from '../types';
+import { toLiteral } from '../utils';
 
 interface BalanceChange {
   owner: { addressOwner?: string };
@@ -78,7 +79,7 @@ export async function fetchTransactions(
       type: 'coin',
       from: tx.senderAddress,
       to: tx.recipients?.[0] ?? '',
-      value: absValue,
+      value: toLiteral(absValue, 9),
       symbol: 'SUI',
       decimals: 9,
       contractAddress: null,
