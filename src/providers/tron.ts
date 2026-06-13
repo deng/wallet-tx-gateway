@@ -1,19 +1,53 @@
 // src/providers/tron.ts
 import { TransactionItem } from '../types';
 
+const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
+async function hexToBase58(hex: string): Promise<string> {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < hex.length; i += 2) {
+    bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
+  }
+
+  // Append double-SHA256 checksum (first 4 bytes)
+  const hash1 = await crypto.subtle.digest('SHA-256', bytes);
+  const hash2 = await crypto.subtle.digest('SHA-256', hash1);
+  const checksum = new Uint8Array(hash2.slice(0, 4));
+
+  const withChecksum = new Uint8Array(bytes.length + 4);
+  withChecksum.set(bytes);
+  withChecksum.set(checksum, bytes.length);
+
+  // Base58 encode
+  let num = BigInt(0);
+  for (const byte of withChecksum) {
+    num = num * 256n + BigInt(byte);
+  }
+
+  let leadingZeros = 0;
+  for (const byte of withChecksum) {
+    if (byte === 0) leadingZeros++;
+    else break;
+  }
+
+  const result: string[] = [];
+  for (let i = 0; i < leadingZeros; i++) {
+    result.push(BASE58_ALPHABET[0]);
+  }
+  while (num > 0n) {
+    result.push(BASE58_ALPHABET[Number(num % 58n)]);
+    num /= 58n;
+  }
+
+  return result.reverse().join('');
+}
+
 interface TrongridTx {
   txID: string;
   block_timestamp: number;
-  from: string;
-  to: string;
-  value: string;
-  receipt?: {
-    result?: string;
-    energy_fee?: number;
-    net_fee?: number;
-  };
-  raw_data?: { contract?: Array<{ parameter?: { value?: { amount?: number } } }> };
-  block_number?: number;
+  blockNumber?: number;
+  ret?: Array<{ contractRet?: string; fee?: number }>;
+  raw_data?: { contract?: Array<{ parameter?: { value?: { owner_address?: string; to_address?: string; amount?: number } } }> };
 }
 
 interface TrongridTrc20Tx {
@@ -105,30 +139,32 @@ export async function fetchTransactions(
     const trc20Data = await trc20Res.json() as TrongridResponse<TrongridTrc20Tx>;
 
     for (const item of nativeData.data) {
-      const receiptResult = item.receipt?.result;
-      // Trongrid receipt.result is undefined for some successful tx types
-      const status = !receiptResult || receiptResult === 'SUCCESS' ? 'success' as const : 'failed' as const;
-      const amount = item.raw_data?.contract?.[0]?.parameter?.value?.amount?.toString() ?? item.value ?? '0';
-      const energyFee = item.receipt?.energy_fee ?? 0;
-      const netFee = item.receipt?.net_fee ?? 0;
-      const totalFee = energyFee + netFee;
+      const contractRet = item.ret?.[0]?.contractRet;
+      const status = !contractRet || contractRet === 'SUCCESS' ? 'success' as const : 'failed' as const;
+      const gasFee = (item.ret?.[0]?.fee ?? 0).toString();
+      const value = item.raw_data?.contract?.[0]?.parameter?.value;
+      const amount = value?.amount?.toString() ?? '0';
+      const [from, to] = await Promise.all([
+        value?.owner_address ? hexToBase58(value.owner_address) : Promise.resolve(''),
+        value?.to_address ? hexToBase58(value.to_address) : Promise.resolve(''),
+      ]);
 
       entries.push({
         rawTs: item.block_timestamp,
         tx: {
           txHash: item.txID,
           type: 'coin',
-          from: item.from,
-          to: item.to,
+          from,
+          to,
           value: amount,
           symbol: 'TRX',
           decimals: 6,
           contractAddress: null,
           timestamp: 0,
           status,
-          gasFee: totalFee.toString(),
+          gasFee,
           methodId: null,
-          blockNumber: item.block_number ?? null,
+          blockNumber: item.blockNumber ?? null,
           tokenTransfers: [],
         },
       });
