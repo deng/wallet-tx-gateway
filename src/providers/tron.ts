@@ -7,8 +7,13 @@ interface TrongridTx {
   from: string;
   to: string;
   value: string;
-  receipt?: { result?: string };
+  receipt?: {
+    result?: string;
+    energy_fee?: number;
+    net_fee?: number;
+  };
   raw_data?: { contract?: Array<{ parameter?: { value?: { amount?: number } } }> };
+  block_number?: number;
 }
 
 interface TrongridTrc20Tx {
@@ -101,8 +106,12 @@ export async function fetchTransactions(
 
     for (const item of nativeData.data) {
       const receiptResult = item.receipt?.result;
-      const status = receiptResult === 'SUCCESS' ? 'success' as const : 'failed' as const;
+      // Trongrid receipt.result is undefined for some successful tx types
+      const status = !receiptResult || receiptResult === 'SUCCESS' ? 'success' as const : 'failed' as const;
       const amount = item.raw_data?.contract?.[0]?.parameter?.value?.amount?.toString() ?? item.value ?? '0';
+      const energyFee = item.receipt?.energy_fee ?? 0;
+      const netFee = item.receipt?.net_fee ?? 0;
+      const totalFee = energyFee + netFee;
 
       entries.push({
         rawTs: item.block_timestamp,
@@ -117,9 +126,9 @@ export async function fetchTransactions(
           contractAddress: null,
           timestamp: 0,
           status,
-          gasFee: '0',
+          gasFee: totalFee.toString(),
           methodId: null,
-          blockNumber: null,
+          blockNumber: item.block_number ?? null,
           tokenTransfers: [],
         },
       });
